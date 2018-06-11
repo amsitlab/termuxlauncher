@@ -1,14 +1,11 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-## This acript to build "Termux Launcher"
+## This script to build "Termux Launcher"
 ## "Termux Launcher" is android application to
 ## 	make  "Termux" as launcher without hack anything
 ##	of  "Termux" application.
 ## This apps will creating shell script located on
-##	/sdcard/termuxlauncher/.apps
-## You must source shell script on 
-##	/sdcard/termuxlauncher/.apps 
-##	for launch apps with command on termux
+##	/sdcard/termuxlauncher/.apps-launcher
 ## Recomended: if you want use "launch" command to
 ##	launch app with cmmand on termux anytime.
 ##	write to your ~/.bashrc or your ~/bash_profile
@@ -19,7 +16,9 @@
 ## Author: Amsit (@amsitlab) <dezavue3@gmail.com>
 ## Thank to:
 ##	forwall (author of the termux)
-##	sdrausty (my inspiration to build apk on termux)##	BlackHoleSecurity (my comunity to learning program)
+##	sdrausty (refference to build apk on termux)
+##	BlackHoleSecurity (community to learning code)
+##
 
 ## Application name
 APP_NAME="termuxlauncher"
@@ -55,7 +54,7 @@ test ! -d $BUILD_APK_PATH &&
 
 ## Creating R.java
 echo 
-echo "aapt bugun: creating R.java"
+echo "aapt begun: creating R.java"
 echo
 sleep 1
 aapt package -v -f \
@@ -83,7 +82,7 @@ echo
 echo "dx begun: creating bin/classes.dex"
 echo
 test ! -d ./bin &&
-	mkdir bin
+	mkdir -p bin
 sleep 1
 dx --dex --verbose --output ./bin/classes.dex ./obj
 sleep 1
@@ -100,8 +99,8 @@ aapt package -v -f \
 sleep 1
 echo
 
-## Chang to ./bin directory
-echo "change directory to ./bin"
+## Change to ./bin directory
+echo "Go to ./bin directory"
 echo
 sleep 1
 cd ./bin
@@ -149,7 +148,7 @@ echo
 sleep 1
 cd ..
 
-echo "You can install \"${APP_NAME}\" apps by clicking file located on ${BUILD_APK_PATH}/${APP_NAME}.apk with your favorite file manager"
+echo "You can install \"${APP_NAME}\" apps by clicking file located on ${BUILD_APK_PATH}/${APP_NAME}.apk with your favorite file manager."
 echo
 
 
