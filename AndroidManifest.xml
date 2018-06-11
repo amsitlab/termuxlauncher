@@ -1,0 +1,48 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	package="amsitlab.android.apps.termuxlauncher"
+	android:installLocation="auto" >
+	<uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+	<uses-feature android:name="android.software.leanback" android:required="false" />
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
+	<uses-permission android:name="android.permission.VIBRATE" />
+	<application
+		android:allowBackup="true"
+		android:icon="@mipmap/ic_launcher"
+		android:roundIcon="@mipmap/ic_launcher_round"
+		android:label="@string/application_name"
+		android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
+		android:supportsRtl="false" >
+
+		<meta-data android:name="android.max_aspect" android:value="10.0" />
+		<activity
+			android:name="amsitlab.android.apps.termuxlauncher.MainActivity"
+			android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+			android:launchMode="singleTask"
+			android:resizeableActivity="true"
+			android:windowSoftInputMode="adjustResize|stateAlwaysVisible"
+			android:excludeFromRecents="true"
+			android:taskAffinity="" >
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+			</intent-filter>
+		</activity>
+		<activity-alias
+			android:name=".HomeActivity"
+			android:targetActivity="amsitlab.android.apps.termuxlauncher.MainActivity" >
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.IOT_LAUNCHER" />
+				<category android:name="android.intent.category.HOME" />
+				<category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+		</activity-alias>
+	</application>
+</manifest>
