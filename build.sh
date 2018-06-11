@@ -45,8 +45,8 @@ do
 done
 
 ## Make sure shared storage has set up
-#test ! -d ~/storage &&
-#	termux-setup-storage
+test ! -d ~/storage &&
+	termux-setup-storage
 
 ##
 test ! -d $BUILD_APK_PATH &&
