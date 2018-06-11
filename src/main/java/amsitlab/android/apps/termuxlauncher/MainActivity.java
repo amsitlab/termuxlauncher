@@ -177,6 +177,16 @@ public class MainActivity extends Activity
 				appName = appName.replace("\"","");
 				appName = appName.replace("(","");
 				appName = appName.replace(")","");
+				appName = appName.replace("&","");
+				appName = appName.replace("{","");
+				appName = appName.replace("}","");
+				appName = appName.replace("$","");
+				appName = appName.replace("!","");
+				appName = appName.replace("<","");
+				appName = appName.replace(">","");
+				appName = appName.replace("#","");
+				appName = appName.replace("+","");
+				appName = appName.replace("*","");
 				appName = appName.replace(" ","-");
 				appNameList.append("\t\tprintf \"");
 				appNameList.append( appName );
