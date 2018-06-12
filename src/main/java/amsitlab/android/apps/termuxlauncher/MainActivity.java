@@ -44,9 +44,9 @@ public class MainActivity extends Activity
 		+ "## Recomended:\n"
 		+ "##\tsource this file to your\n"
 		+ "##\t~/.bashrc or ~/.bash_profile to launch app with\n"
-		+ "##\tcommand on termnux by calling\n"
+		+ "##\tcommand on termux by calling\n"
 		+ "##\t'launch [appname]'\n\n"
-		+ "## Author : Amsit (@amsilab) <dezavue3@gmail.com>\n\n\n\n";
+		+ "## Author : Amsit (@amsitlab) <dezavue3@gmail.com>\n\n\n\n";
 	
 
 
