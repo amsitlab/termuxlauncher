@@ -74,6 +74,7 @@ public class MainActivity extends Activity
 		+ "\t\t;;\n"
 		+ "\t\t*)\n"
 		+ "\t\tprintf \"Unknown command: type 'launch --help' for detail .\\n\"\n"
+		+ "\t\treturn 1\n"
 		+ "\t\t;;\n"
 		+ "\tesac\n"
 		+ "}";
