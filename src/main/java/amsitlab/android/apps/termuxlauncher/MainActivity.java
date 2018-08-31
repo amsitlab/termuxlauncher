@@ -202,9 +202,9 @@ public class MainActivity extends Activity
 					+ "|"
 					+ appName.toLowerCase()
 					+ ")\n"
-					+ "\t\tam start -n "
+					+ "\t\tam start -n '"
 					+ componentName
-					+ " --user 0 &> /dev/null\n"
+					+ "' --user 0 &> /dev/null\n"
 					+ "\t\tprintf \"Launch '"
 					+ originalAppName.replace("\"","\\\"")
 					+ "'\\n\"\n"
