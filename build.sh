@@ -23,6 +23,26 @@
 ## Application name
 APP_NAME="termuxlauncher"
 
+APP_VERSION="1.1"
+
+## main source directory
+SRC_MAIN_DIR="app/src/main"
+
+## java source directory
+JAVA_SRC_DIR=$SRC_MAIN_DIR/java
+
+## android.jar location
+ANDROIDJAR=${PREFIX}/share/java/android.jar
+
+ANDROIDMANIFEST=${SRC_MAIN_DIR}/AndroidManifest.xml
+
+## generated binary directory
+BIN_DIR="bin"
+
+# java classes directory
+CLASSES_DIR=${BIN_DIR}/classes
+
+
 ## Required packages
 REQ_PKG=("ecj" "dx" "aapt" "apksigner")
 
@@ -33,8 +53,21 @@ REQ_LEN=${#REQ_PKG[@]}
 BUILD_APK_PATH=${EXTERNAL_STORAGE}/Download/buildAPKs
 
 ## Java file list
-JAVA_FILE_LIST=`find src/main/java -type f -name \*.java`
- 
+JAVA_FILE_LIST=`find ${JAVA_SRC_DIR} -type f -name \*.java`
+
+
+KEYSTORE_DIR=".keystore"
+
+KEY_PK8=${KEYSTORE_DIR}/key.pk8
+X509_PEM=${KEYSTORE_DIR}/cert.x509.pem
+REQ_PEM=${KEYSTORE_DIR}/req.pem
+KEY_PEM=${KEYSTORE_DIR}/key.pem
+
+APK=${APP_NAME}-${APP_VERSION}.apk
+APK_UNSIGNED=${APP_NAME}.unsigned.apk
+APK_ALIGNED=${APP_NAME}.aligned.apk
+
+
 ## Check required package and install if not installed
 for((i=0; i<$REQ_LEN; i++));
 do
@@ -44,6 +77,12 @@ do
 	fi
 done
 
+OSSL=openssl
+if [[ "x${OSSL}" = "x" ]] ; then
+  apt install -y openssl-tool
+fi
+
+
 ## Make sure shared storage has set up
 test ! -d ~/storage &&
 	termux-setup-storage
@@ -52,16 +91,19 @@ test ! -d ~/storage &&
 test ! -d $BUILD_APK_PATH &&
 	mkdir -p $BUILD_APK_PATH
 
+
+rm -f $BIN_DIR
+
 ## Creating R.java
-echo 
+echo
 echo "aapt begun: creating R.java"
 echo
 sleep 1
 aapt package -v -f \
-	-M AndroidManifest.xml \
-	-S res \
-	-J src/main/java \
-	-I ${PREFIX}/share/java/android.jar \
+	-M ${ANDROIDMANIFEST} \
+	-S ${SRC_MAIN_DIR}/res \
+	-J ${JAVA_SRC_DIR} \
+	-I ${ANDROIDJAR} \
 	-m
 sleep 1
 echo
@@ -71,76 +113,109 @@ echo "ecj begun: compiling"
 echo
 sleep 1
 ecj -verbose \
-	-d ./obj \
-	-classpath ${PREFIX}/share/java/android.jar \
-	-sourcepath src/main/java \
+	-d $CLASSES_DIR \
+	-classpath $ANDROIDJAR \
+	-sourcepath $JAVA_SRC_DIR \
 	$JAVA_FILE_LIST
 sleep 1
 echo
 
 ## Dexing all .class on ./obj path
-echo "dx begun: creating bin/classes.dex"
+echo "dx begun: creating ${BIN_DIR}/classes.dex"
 echo
-test ! -d ./bin &&
-	mkdir -p bin
+test ! -d $BIN_DIR &&
+	mkdir -p $BIN_DIR
 sleep 1
-dx --dex --verbose --output ./bin/classes.dex ./obj
+dx --dex --verbose --output ${BIN_DIR}/classes.dex $CLASSES_DIR
 sleep 1
 echo
 
 ## Creating unsigned appliaction file
-echo "aapt bagun: creating ./bin/${APP_NAME}-unsigned.apk"
+echo "aapt bagun: creating ${BIN_DIR}/${APK_UNSIGNED}"
 echo
 sleep 1
 aapt package -v -f \
-	-M AndroidManifest.xml \
-	-S ./res \
-	-F ./bin/${APP_NAME}-unsigned.apk
+	-M $ANDROIDMANIFEST \
+	-S ${SRC_MAIN_DIR}/res \
+	-F ${BIN_DIR}/${APK_UNSIGNED}
 sleep 1
 echo
 
+
+if [[ ! -d $KEYSTORE_DIR ]] ; then
+  echo "make dir ${KEYSTORE_DIR}"
+  mkdir -p $KEYSTORE_DIR
+fi
+
+if [ ! -f "$X509_PEM" ] ; then
+  openssl genrsa -out $KEY_PEM 2048
+
+  openssl req -new -key $KEY_PEM -out $REQ_PEM
+
+  openssl x509 -req -days 10000 -in $REQ_PEM \
+    -signkey $KEY_PEM -out $X509_PEM
+
+  openssl pkcs8 -topk8 -outform DER -in $KEY_PEM \
+    -inform PEM -out $KEY_PK8 -nocrypt
+
+fi
+
+
 ## Change to ./bin directory
-echo "Go to ./bin directory"
+echo "Go to ${BIN_DIR} directory"
 echo
 sleep 1
-cd ./bin
+
+
+cd ${BIN_DIR}
 
 
 ## Adding classes.dex to application file
-echo "aapt begun: adding classes.dex to ${APP_NAME}-unsigned.apk"
+echo "aapt begun: adding classes.dex to ${APK_UNSIGNED}"
 echo
 sleep 1
-aapt add -f ${APP_NAME}-unsigned.apk classes.dex
+aapt add -f ${APK_UNSIGNED} classes.dex
 echo
+
+
+
+echo "[zip aligned]"
+zipalign 4 ${APK_UNSIGNED} ${APK_ALIGNED}
+
+
+
 
 
 ## Sign application file
-echo "apksigner begun: creating ${APP_NAME}.apk"
+echo "apksigner begun: creating ${APK}"
 echo
 sleep 1
 
-apksigner ../${APP_NAME}-debug.key \
-	${APP_NAME}-unsigned.apk \
-	${APP_NAME}.apk
+apksigner sign \
+  -in $APK_ALIGNED \
+  -out $APK \
+  -key ../${KEY_PK8} \
+  -cert ../${X509_PEM}
+
 sleep 1
 
 ## Change permission of signed appliaction file
-echo "Change permission ${APP_NAME}.apk to 644"
+echo "Change permission ${APK} to 644"
 echo
 sleep 1
-chmod 644 ${APP_NAME}.apk
+chmod 644 ${APK}
 
 ## Removing unsigned aplication file
-echo "Removing ${APP_NAME}-unsigned.apk"
+echo "Removing ${APK_UNSIGNED}"
 echo
 sleep 1
-rm -fr ${APP_NAME}-unsigned.apk
+rm -fr ${APK_UNSIGNED}
 
 ## Copy application file
-echo "Copy ${APP_NAME}.apk to ${BUILD_APK_PATH}/${APP_NAME}.apk"
+echo "Copy ${APK} to ${BUILD_APK_PATH}/${APK}"
 echo
 sleep 1
-cp ${APP_NAME}.apk ${BUILD_APK_PATH}/${APP_NAME}.apk
+cp ${APK} ${BUILD_APK_PATH}/${APK}
 
 ## Go back to prev directory
 echo "back to prev directory"
@@ -148,7 +223,7 @@ echo
 sleep 1
 cd ..
 
-echo "You can install \"${APP_NAME}\" apps by clicking file located on ${BUILD_APK_PATH}/${APP_NAME}.apk with your favorite file manager."
+echo "You can install \"${APP_NAME}\" apps by clicking file located on ${BUILD_APK_PATH}/${APK} with your favorite file manager."
 echo
 
 
