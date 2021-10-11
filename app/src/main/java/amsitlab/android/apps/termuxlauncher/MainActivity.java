@@ -126,7 +126,6 @@ public class MainActivity extends Activity
 	}
 
 
-    @Deprecated
 	private static void createExternalPath()
 	{
 		if(!sExternalPath.exists())
@@ -137,7 +136,6 @@ public class MainActivity extends Activity
 
 
 
-    @Deprecated
 	private void createAliasFile()
 	{
 		sAliasFile = new File(sExternalPath,EXTERNAL_ALIAS_FILE_NAME);
@@ -236,22 +234,6 @@ public class MainActivity extends Activity
 
 		}.start();
 	}
-
-    /**
-     * @since 2.0
-     */
-    private static void createSharedPath() {
-        if (Constants.SHARED_PATH.exists()) {
-            Constants.SHARED_PATH.mkdirs();
-        }
-    }
-
-    /**
-     * @since 2.0
-     */
-    private static void createApplist() {
-
-    }
 
 
 }
