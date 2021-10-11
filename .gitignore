@@ -1,4 +1,4 @@
 obj/**
 bin/**
-!bin/termuxlauncher.apk
-termuxlauncher-debug.key
+.keystore/**
+app/src/main/java/amsitlab/android/apps/termuxlauncher/R.java
