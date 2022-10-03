@@ -191,8 +191,8 @@ public class MainActivity extends Activity
 				appName = appName.replace("+","");
 				appName = appName.replace("*","");
 				appName = appName.replace(" ","-");
-				appName = appName.replace("\t'"," ");
-				appName = appName.replace("'\n"," ");
+				appName = appName.replace("\t","-");
+				appName = appName.replace("\n","-");
 				appNameList.append("\t\tprintf \"");
 				appNameList.append( appName );
 				appNameList.append("\\n");
