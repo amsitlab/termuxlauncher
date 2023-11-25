@@ -92,7 +92,7 @@ test ! -d $BUILD_APK_PATH &&
 	mkdir -p $BUILD_APK_PATH
 
 
-rm -f $BIN_DIR
+rm -rf $BIN_DIR
 
 ## Creating R.java
 echo
