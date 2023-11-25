@@ -20,6 +20,7 @@ import java.io.PrintStream;
 
 import java.util.Scanner;
 import java.util.List;
+import java.util.ArrayList;
 
 
 public class MainActivity extends Activity{
@@ -28,6 +29,7 @@ public class MainActivity extends Activity{
 	public static final String EXTERNAL_PATH_NAME = "termuxlauncher";
 
 	public static final String EXTERNAL_LAUNCH_FILE_NAME = ".apps-launcher";
+	public static final String EXTERNAL_ALIAS_FILE_NAME = "aliasses.txt";
 
 	private static final String LAUNCH_SCRIPT_COMMENT = ""
 		+ "## This script created by Termux Launcher.\n"
@@ -79,14 +81,14 @@ public class MainActivity extends Activity{
 
 	/** user's alias file **/
 	private static File sAliasFile;
-	List<String> aliasedAppNames;
-	List<String> aliasses;
+	private static List<String> aliassedAppNames;
+	private static List<String> aliasses;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		readAliasFile();
-		createLaunchsFile();
+		createLaunchFile();
 		createTermuxIntent();
 		startActivity(myIntent);
 	}
@@ -94,6 +96,8 @@ public class MainActivity extends Activity{
 	@Override
 	public void onResume(){
 		super.onResume();
+		readAliasFile();
+		createLaunchFile();
 		createTermuxIntent();
 		startActivity(myIntent);
 	}
@@ -101,6 +105,8 @@ public class MainActivity extends Activity{
 	@Override
 	public void onPause(){
 		super.onPause();
+		readAliasFile();
+		createLaunchFile();
 		createTermuxIntent();
 		startActivity(myIntent);
 	}
@@ -119,23 +125,23 @@ public class MainActivity extends Activity{
 
 	private static void readAliasFile(){
 		sAliasFile = new File(sExternalPath,EXTERNAL_ALIAS_FILE_NAME);
-		aliasedAppNames = new ArrayList<String>();
+		aliassedAppNames = new ArrayList<String>();
 		aliasses = new ArrayList<String>();
-		if(!sAliasFile.exists()) return 0;
+		if(!sAliasFile.exists()) return;
 		try {
 			Scanner reader = new Scanner(sAliasFile);
 			while(reader.hasNextLine()) {
 				String line = reader.nextLine();
 				String[] data = line.split("=",2);
 				aliasses.add(data[0]);
-				aliasedAppNames.add(data[1]);
+				aliassedAppNames.add(data[1]);
 			}
 			reader.close();
 		} catch(Exception e) {
 			Log.e(LOG_TAG,"Could not Read from " + sAliasFile.toString());
-			return 1;
+			return;
 		}
-		return 0;
+		return;
 		
 	}
 
@@ -148,7 +154,7 @@ public class MainActivity extends Activity{
 
 				try{
 					// Always up to date
-					if(sLaunchfile.exists()){
+					if(sLaunchFile.exists()){
 						sLaunchFile.delete();
 					}
 
@@ -174,7 +180,7 @@ public class MainActivity extends Activity{
 						String componentName = intent.getComponent().flattenToShortString();
 						String toRemove = "'\"()&{}$!<>#+*";
 						for(int i=0;i<toRemove.length();i++){
-							appName = appName.replace(toRemove[i],"");
+							appName = appName.replace(""+toRemove.charAt(i),"");
 						}
 						appName = appName.replace(" ","-");
 						appNameList.append("\t\tprintf \"");
@@ -183,9 +189,9 @@ public class MainActivity extends Activity{
 
 						printer.print("\t\t" + appName);
 
-						for(int i=0; i<aliassedAppNames.length;i++){
-							if(appName.equals(aliassedAppNames[i].toLowerCase())){
-								printer.print("|"+aliasses[i]);
+						for(int i=0; i<aliassedAppNames.size();i++){
+							if(appName.equals(aliassedAppNames.get(i).toLowerCase())){
+								printer.print("|"+aliasses.get(i));
 							}
 						}
 						printer.print(""
