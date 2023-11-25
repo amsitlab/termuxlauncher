@@ -2,14 +2,14 @@
 
 ### Description
 ---------------
-Set [Termux](https://github.com/termux/termux-app) as a launcher without hacking anything in the original application.
+Set [Termux](https://github.com/termux/termux-app) as a launcher without changing anything in the original application.
 This application just sets [Termux](https://github.com/termux/termux-app) as a launcher and does not modify/hack/replace the [Termux](https://github.com/termux/termux-app) application itself.
 [Termux](https://github.com/termux/termux-app) application must be installed on your device before using this application.
 
 
 
 ### Installation
-> If you do not build from source,
+> If you don't want to build from source,
 > I have an installable apk for you at [here](http://github.com/amsitlab/termuxlauncher/releases) .
 >
 
@@ -43,7 +43,7 @@ and run this script to build:
 
 
 
-### Recomended
+### Usage
 --------------
 To launch the application with command:
 ```bash
@@ -65,14 +65,16 @@ after you have built and installed this app.
 
 ### Success
 -----------
-build on Lenovo A1000
+built on Lenovo A1000
+built on Huawei P20
 
 
 
 
-### Author
+### Maintainers
 ----------
-- Amsit (@amsitlab) <dezavue3@gmail.com>
+- Amsit - @amsitlab (Author) <dezavue3@gmail.com>
+- Olie @therealolie <theRealOlie@proton.me>
 
 
 
