@@ -1,4 +1,5 @@
 package amsitlab.android.apps.termuxlauncher;
+// vim:foldmethod=syntax
 
 
 import android.os.Bundle;
@@ -17,42 +18,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
+import java.util.Scanner;
 import java.util.List;
 
 
-public class MainActivity extends Activity
-{
+public class MainActivity extends Activity{
 	public static final String LOG_TAG = "termux-applist";
 
 	public static final String EXTERNAL_PATH_NAME = "termuxlauncher";
 
-	public static final String EXTERNAL_ALIAS_FILE_NAME = ".apps-launcher";
-
-	/** custom aliases */
-	public static final String[] ALIASSES = {
-		"dc","ff","ga",
-		"es","me","se",
-		"wu","stm","sms",
-		"inf","calc"
-	};
-
-	public static final String[] PACKAGES = {
-		"meow","firefox","gallery",
-		"eternal-senia","mergecraft","Settings",
-		"wulkanowy","simplytranslate-mobile","qksms",
-		"infinitode-2","arity"
-
-	};
-
-	/** termux intent */
-	private static Intent myIntent;
-
-	/** Public external storage path name */
-	private static File sExternalPath = Environment.getExternalStoragePublicDirectory(EXTERNAL_PATH_NAME);
-
-	/** Alias file **/
-	private static File sAliasFile;
-
+	public static final String EXTERNAL_LAUNCH_FILE_NAME = ".apps-launcher";
 
 	private static final String LAUNCH_SCRIPT_COMMENT = ""
 		+ "## This script created by Termux Launcher.\n"
@@ -64,8 +39,6 @@ public class MainActivity extends Activity
 		+ "##\tcommand on termux by calling\n"
 		+ "##\t'launch [appname]'\n\n"
 		+ "## Author : Amsit (@amsitlab) <dezavue3@gmail.com>\n\n\n\n";
-
-
 
 	private static final String LAUNCH_SCRIPT_START = ""
 		+ "launch(){\n"
@@ -83,8 +56,6 @@ public class MainActivity extends Activity
 		+ "\t\tprintf \"\\t\\tDisplaying this message and exit .\\n\\n\"\n"
 		+ "\t\t;;\n";
 
-
-
 	private static final String LAUNCH_SCRIPT_END = ""
 		+ "\t\t--list|-l)\n"
 		+ "{{applications_list}}"
@@ -97,82 +68,92 @@ public class MainActivity extends Activity
 		+ "\tesac\n"
 		+ "}";
 
+	/** termux intent */
+	private static Intent myIntent;
 
+	/** Public external storage path name */
+	private static File sExternalPath = Environment.getExternalStoragePublicDirectory(EXTERNAL_PATH_NAME);
 
+	/** Launch file **/
+	private static File sLaunchFile;
 
-
-
-
+	/** user's alias file **/
+	private static File sAliasFile;
+	List<String> aliasedAppNames;
+	List<String> aliasses;
 
 	@Override
-	public void onCreate(Bundle savedInstanceState)
-	{
+	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
-		createAliasFile();
+		readAliasFile();
+		createLaunchsFile();
 		createTermuxIntent();
 		startActivity(myIntent);
 	}
 
-
 	@Override
-	public void onResume()
-	{
+	public void onResume(){
 		super.onResume();
 		createTermuxIntent();
 		startActivity(myIntent);
 	}
 
-
 	@Override
-	public void onPause()
-	{
+	public void onPause(){
 		super.onPause();
 		createTermuxIntent();
 		startActivity(myIntent);
 	}
 
-
-
-	private void createTermuxIntent()
-	{
-		if(null == myIntent)
-		{
+	private void createTermuxIntent(){
+		if(null == myIntent){
 			myIntent = getPackageManager().getLaunchIntentForPackage("com.termux");
-
 		}
 	}
 
-
-	private static void createExternalPath()
-	{
-		if(!sExternalPath.exists())
-		{
+	private static void createExternalPath(){
+		if(!sExternalPath.exists()){
 			sExternalPath.mkdirs();
 		}
 	}
 
-
-
-	private void createAliasFile()
-	{
+	private static void readAliasFile(){
 		sAliasFile = new File(sExternalPath,EXTERNAL_ALIAS_FILE_NAME);
+		aliasedAppNames = new ArrayList<String>();
+		aliasses = new ArrayList<String>();
+		if(!sAliasFile.exists()) return 0;
+		try {
+			Scanner reader = new Scanner(sAliasFile);
+			while(reader.hasNextLine()) {
+				String line = reader.nextLine();
+				String[] data = line.split("=",2);
+				aliasses.add(data[0]);
+				aliasedAppNames.add(data[1]);
+			}
+			reader.close();
+		} catch(Exception e) {
+			Log.e(LOG_TAG,"Could not Read from " + sAliasFile.toString());
+			return 1;
+		}
+		return 0;
+		
+	}
+
+	private void createLaunchFile(){
+		sLaunchFile = new File(sExternalPath,EXTERNAL_LAUNCH_FILE_NAME);
 
 
-		new Thread()
-		{
-			public void run()
-			{
+		new Thread(){
+			public void run(){
 
-				try
-				{
+				try{
 					// Always up to date
-					if(sAliasFile.exists())
-					{
-						sAliasFile.delete();
+					if(sLaunchfile.exists()){
+						sLaunchFile.delete();
 					}
 
 					createExternalPath();
-					final FileOutputStream fos = new FileOutputStream(sAliasFile);
+					final FileOutputStream fos = new FileOutputStream(sLaunchFile);
 					final PrintStream printer = new PrintStream(fos);
 					final PackageManager pm = getApplicationContext().getPackageManager();
 					List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
@@ -180,80 +161,61 @@ public class MainActivity extends Activity
 					printer.print(LAUNCH_SCRIPT_START);
 
 					final StringBuilder appNameList = new StringBuilder();
-					for(ApplicationInfo pkg : packages)
-					{
+					for(ApplicationInfo pkg : packages){
 						String pkgName = pkg.packageName;
 						String originalAppName = pkg.loadLabel(pm).toString();
 						String appName = originalAppName.toLowerCase();
 						Intent intent = pm.getLaunchIntentForPackage(pkgName);
 						boolean isSystemApp = ((pkg.flags & ApplicationInfo.FLAG_SYSTEM) == 1) ? true : false;
 						Log.d(LOG_TAG,"[" + intent + "] : [" + pkgName + "] : [" + isSystemApp + "] : [" + "] : [" + appName + "]");
-						if(intent == null)
-						{
+						if(intent == null){
 							continue;
 						}
 						String componentName = intent.getComponent().flattenToShortString();
-						appName = appName.replace("'","");
-						appName = appName.replace("\"","");
-						appName = appName.replace("(","");
-						appName = appName.replace(")","");
-						appName = appName.replace("&","");
-						appName = appName.replace("{","");
-						appName = appName.replace("}","");
-						appName = appName.replace("$","");
-						appName = appName.replace("!","");
-						appName = appName.replace("<","");
-						appName = appName.replace(">","");
-						appName = appName.replace("#","");
-						appName = appName.replace("+","");
-						appName = appName.replace("*","");
+						String toRemove = "'\"()&{}$!<>#+*";
+						for(int i=0;i<toRemove.length();i++){
+							appName = appName.replace(toRemove[i],"");
+						}
 						appName = appName.replace(" ","-");
 						appNameList.append("\t\tprintf \"");
 						appNameList.append( appName );
 						appNameList.append("\\n\"\n");
 
-						printer.print(""
-								+ "\t\t"
-								+ appName
-							     );
+						printer.print("\t\t" + appName);
 
-						for(int i=0; i<ALIASSES.length;i++){
-							if(appName.equals(PACKAGES[i].toLowerCase())){
-								printer.print(""
-									+ "|"
-									+ ALIASSES[i]
-								);
+						for(int i=0; i<aliassedAppNames.length;i++){
+							if(appName.equals(aliassedAppNames[i].toLowerCase())){
+								printer.print("|"+aliasses[i]);
 							}
 						}
 						printer.print(""
-							+ ")\n"
-							+ "\t\tam start -n '"
-							+ componentName
-							+ "' --user 0 &> /dev/null\n"
-							+ "\t\tprintf \"Launch '"
-							+ originalAppName.replace("\"","\\\"")
-							+ "'\\n\"\n"
-							+ "\t\t;;\n"
-					     );
+								+ ")\n"
+								+ "\t\tam start -n '"
+								+ componentName
+								+ "' --user 0 &> /dev/null\n"
+								+ "\t\tprintf \"Launching '"
+								+ originalAppName.replace("\"","\\\"")
+								+ "'\\n\"\n"
+								+ "\t\t;;\n"
+							     );
 
-						}
-
-						printer.print(
-							LAUNCH_SCRIPT_END.replace("{{applications_list}}",appNameList.toString()));
-
-
-						printer.flush();
-						printer.close();
-						fos.flush();
-						fos.close();
-					} catch(IOException ioe) {
-						Log.e(LOG_TAG,"Could not write to " + sAliasFile.toString());
 					}
 
+					printer.print(LAUNCH_SCRIPT_END.replace("{{applications_list}}",appNameList.toString()));
+
+
+					printer.flush();
+					printer.close();
+					fos.flush();
+					fos.close();
+				} catch(IOException ioe) {
+					Log.e(LOG_TAG,"Could not write to " + sLaunchFile.toString());
 				}
 
-			}.start();
-		}
+			}
 
-
+		}.start();
 	}
+
+
+}
