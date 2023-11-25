@@ -28,6 +28,22 @@ public class MainActivity extends Activity
 
 	public static final String EXTERNAL_ALIAS_FILE_NAME = ".apps-launcher";
 
+	/** custom aliases */
+	public static final String[] ALIASSES = {
+		"dc","ff","ga",
+		"es","me","se",
+		"wu","stm","sms",
+		"inf","calc"
+	};
+
+	public static final String[] PACKAGES = {
+		"meow","firefox","gallery",
+		"eternal-senia","mergecraft","Settings",
+		"wulkanowy","simplytranslate-mobile","qksms",
+		"infinitode-2","arity"
+
+	};
+
 	/** termux intent */
 	private static Intent myIntent;
 
@@ -53,7 +69,8 @@ public class MainActivity extends Activity
 
 	private static final String LAUNCH_SCRIPT_START = ""
 		+ "launch(){\n"
-		+ "\tcase \"$1\" in\n"
+		+ "\tname=\"$(echo \"$1\" | tr 'A-Z' 'a-z' )\"\n"
+		+ "\tcase \"$name\" in\n"
 		+ "\t\t--help|-h)\n"
 		+ "\t\tprintf \"Usage:\\n\"\n"
 		+ "\t\tprintf \"\\tlaunch [appname]\\n\"\n"
@@ -143,97 +160,100 @@ public class MainActivity extends Activity
 
 		new Thread()
 		{
-		    public void run()
-		    {
-
-			try
+			public void run()
 			{
-			    // Always up to date
-			    if(sAliasFile.exists())
-		  	    {
-				sAliasFile.delete();
-			    }
 
-			    createExternalPath();
-			    final FileOutputStream fos = new FileOutputStream(sAliasFile);
-			    final PrintStream printer = new PrintStream(fos);
-			    final PackageManager pm = getApplicationContext().getPackageManager();
-			    List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-			    printer.print(LAUNCH_SCRIPT_COMMENT);
-			    printer.print(LAUNCH_SCRIPT_START);
-
-			    final StringBuilder appNameList = new StringBuilder();
-			    for(ApplicationInfo pkg : packages)
-			    {
-				String pkgName = pkg.packageName;
-				String originalAppName = pkg.loadLabel(pm).toString();
-				String appName = originalAppName;
-				Intent intent = pm.getLaunchIntentForPackage(pkgName);
-				boolean isSystemApp = ((pkg.flags & ApplicationInfo.FLAG_SYSTEM) == 1) ? true : false;
-				Log.d(LOG_TAG,"[" + intent + "] : [" + pkgName + "] : [" + isSystemApp + "] : [" + "] : [" + appName + "]");
-				if(intent == null)
+				try
 				{
-					continue;
+					// Always up to date
+					if(sAliasFile.exists())
+					{
+						sAliasFile.delete();
+					}
+
+					createExternalPath();
+					final FileOutputStream fos = new FileOutputStream(sAliasFile);
+					final PrintStream printer = new PrintStream(fos);
+					final PackageManager pm = getApplicationContext().getPackageManager();
+					List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+					printer.print(LAUNCH_SCRIPT_COMMENT);
+					printer.print(LAUNCH_SCRIPT_START);
+
+					final StringBuilder appNameList = new StringBuilder();
+					for(ApplicationInfo pkg : packages)
+					{
+						String pkgName = pkg.packageName;
+						String originalAppName = pkg.loadLabel(pm).toString();
+						String appName = originalAppName.toLowerCase();
+						Intent intent = pm.getLaunchIntentForPackage(pkgName);
+						boolean isSystemApp = ((pkg.flags & ApplicationInfo.FLAG_SYSTEM) == 1) ? true : false;
+						Log.d(LOG_TAG,"[" + intent + "] : [" + pkgName + "] : [" + isSystemApp + "] : [" + "] : [" + appName + "]");
+						if(intent == null)
+						{
+							continue;
+						}
+						String componentName = intent.getComponent().flattenToShortString();
+						appName = appName.replace("'","");
+						appName = appName.replace("\"","");
+						appName = appName.replace("(","");
+						appName = appName.replace(")","");
+						appName = appName.replace("&","");
+						appName = appName.replace("{","");
+						appName = appName.replace("}","");
+						appName = appName.replace("$","");
+						appName = appName.replace("!","");
+						appName = appName.replace("<","");
+						appName = appName.replace(">","");
+						appName = appName.replace("#","");
+						appName = appName.replace("+","");
+						appName = appName.replace("*","");
+						appName = appName.replace(" ","-");
+						appNameList.append("\t\tprintf \"");
+						appNameList.append( appName );
+						appNameList.append("\\n\"\n");
+
+						printer.print(""
+								+ "\t\t"
+								+ appName
+							     );
+
+						for(int i=0; i<ALIASSES.length;i++){
+							if(appName.equals(PACKAGES[i].toLowerCase())){
+								printer.print(""
+									+ "|"
+									+ ALIASSES[i]
+								);
+							}
+						}
+						printer.print(""
+							+ ")\n"
+							+ "\t\tam start -n '"
+							+ componentName
+							+ "' --user 0 &> /dev/null\n"
+							+ "\t\tprintf \"Launch '"
+							+ originalAppName.replace("\"","\\\"")
+							+ "'\\n\"\n"
+							+ "\t\t;;\n"
+					     );
+
+						}
+
+						printer.print(
+							LAUNCH_SCRIPT_END.replace("{{applications_list}}",appNameList.toString()));
+
+
+						printer.flush();
+						printer.close();
+						fos.flush();
+						fos.close();
+					} catch(IOException ioe) {
+						Log.e(LOG_TAG,"Could not write to " + sAliasFile.toString());
+					}
+
 				}
-				String componentName = intent.getComponent().flattenToShortString();
-				appName = appName.replace("'","");
-				appName = appName.replace("\"","");
-				appName = appName.replace("(","");
-				appName = appName.replace(")","");
-				appName = appName.replace("&","");
-				appName = appName.replace("{","");
-				appName = appName.replace("}","");
-				appName = appName.replace("$","");
-				appName = appName.replace("!","");
-				appName = appName.replace("<","");
-				appName = appName.replace(">","");
-				appName = appName.replace("#","");
-				appName = appName.replace("+","");
-				appName = appName.replace("*","");
-				appName = appName.replace(" ","-");
-				appNameList.append("\t\tprintf \"");
-				appNameList.append( appName );
-				appNameList.append("\\n");
-				appNameList.append(appName.toLowerCase());
 
-				appNameList.append("\\n\"\n");
-
-				printer.print(""
-					+ "\t\t"
-					+ appName
-					+ "|"
-					+ appName.toLowerCase()
-					+ ")\n"
-					+ "\t\tam start -n '"
-					+ componentName
-					+ "' --user 0 &> /dev/null\n"
-					+ "\t\tprintf \"Launch '"
-					+ originalAppName.replace("\"","\\\"")
-					+ "'\\n\"\n"
-					+ "		;;\n"
-				);
+			}.start();
+		}
 
 
-
-			    }
-
-
-			    printer.print(
-				LAUNCH_SCRIPT_END.replace("{{applications_list}}",appNameList.toString()));
-
-
-			    printer.flush();
-			    printer.close();
-			    fos.flush();
-			    fos.close();
-			} catch(IOException ioe) {
-				Log.e(LOG_TAG,"Could not write to " + sAliasFile.toString());
-			}
-
-		    }
-
-		}.start();
 	}
-
-
-}
