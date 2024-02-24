@@ -172,9 +172,11 @@ public class MainActivity extends Activity
 	private String getAliassedName(String appName,String pkgName)
 	{
 		for(int i=0; i<aliassedAppNames.size();i++){
-			if(!appName.equals(aliassedAppNames.get(i).toLowerCase()))
-				continue;
-			return aliasses.get(i);
+			// in case 2 apps use the same name, you can change them using the pkgName
+			if(pkgName.equals(aliassedAppNames.get(i).toLowerCase()))
+				return aliasses.get(i);
+			if(appName.equals(aliassedAppNames.get(i).toLowerCase()))
+				return aliasses.get(i);
 		}
 		return appName;
 
