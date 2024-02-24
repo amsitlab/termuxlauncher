@@ -222,7 +222,7 @@ public class MainActivity extends Activity
 					continue;
 				appNameList.append( aliassedName );
 				appNameList.append("\\n");
-				printer.print(appName
+				printer.print(aliassedName
 						+ ")\n"
 						+ "\t\tname=\"" + originalAppName.replace("\"","\\\"") + "\"\n"
 						+ "\t\tpkg=\"" + componentName + "\"\n"

@@ -65,6 +65,7 @@ build: clean ${JAVA_FILE_LIST} ${X509_PEM} ${KEYSTORE_DIR} ${BIN_DIR}
 		-M ${ANDROIDMANIFEST} \
 		-S ${SRC_MAIN_DIR}/res \
 		-F ${BIN_DIR}/${APK_UNSIGNED}
+	mkdir -p "${BUILD_APK_PATH}"
 	cd ${BIN_DIR}; \
 		aapt add -f ${APK_UNSIGNED} classes.dex; \
 		zipalign 4 ${APK_UNSIGNED} ${APK_ALIGNED}; \
